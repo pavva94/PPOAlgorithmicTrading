@@ -29,6 +29,7 @@ rewardClipping = 1
 
 learningUpdatePeriod = 1
 
+
 class RolloutBuffer:
     def __init__(self):
         self.actions = []
@@ -43,6 +44,10 @@ class RolloutBuffer:
         del self.logprobs[:]
         del self.rewards[:]
         del self.is_terminals[:]
+
+    def check_len(self):
+        assert len(self.actions) == len(self.states) == len(self.logprobs) == len(self.rewards) == len(self.is_terminals)
+        return len(self.actions)
 
 
 class ActorCritic(nn.Module):
@@ -90,12 +95,11 @@ class ActorCritic(nn.Module):
         action_logprobs = dist.log_prob(action)
         dist_entropy = dist.entropy()
         state_values = self.critic(state)
-
         return action_logprobs, state_values, dist_entropy
 
 
 ###############################################################################
-################################ Class TDQN ###################################
+################################ Class PPO ###################################
 ###############################################################################
 
 class PPO:
@@ -304,12 +308,13 @@ class PPO:
 
         return np.clip(reward, -rewardClipping, rewardClipping)
 
-    def chooseAction(self, state):
+    def chooseAction(self, state, append=True):
         """
         GOAL: Choose a valid RL action from the action space according to the
               RL policy as well as the current RL state observed.
 
         INPUTS: - state: RL state returned by the environment.
+                - append: boolean define if append or not the data
 
         OUTPUTS: - action: RL action chosen from the action space.
                  - Q: State-action value function associated.
@@ -320,15 +325,15 @@ class PPO:
             state = torch.FloatTensor(state).to(self.device)
             action, action_logprob = self.policy_old.act(state)
 
-        self.buffer.states.append(state)
-        self.buffer.actions.append(action)
-        self.buffer.logprobs.append(action_logprob)
+        if append:
+            self.buffer.states.append(state)
+            self.buffer.actions.append(action)
+            self.buffer.logprobs.append(action_logprob)
 
         return action.item()
 
-    #DONE
     def learning(self):
-
+        print(self.buffer.check_len())
         # Monte Carlo estimate of returns
         rewards = []
         discounted_reward = 0
@@ -449,7 +454,7 @@ class PPO:
                     while done == 0:
 
                         # Choose an action according to the RL policy and the current RL state
-                        action, _, _ = self.chooseAction(state)
+                        action = self.chooseAction(state)
 
                         # Interact with the environment with the chosen action
                         nextState, reward, done, info = trainingEnvList[i].step(action)
@@ -468,11 +473,11 @@ class PPO:
                         # self.buffer.rewards.append(otherReward)
                         # self.buffer.is_terminals.append(otherDone)
 
-                        # Execute the DQN learning procedure
-                        stepsCounter += 1
-                        if stepsCounter == learningUpdatePeriod:
-                            self.learning()
-                            stepsCounter = 0
+                        # Execute the learning procedure
+                        # stepsCounter += 1
+                        # if stepsCounter == learningUpdatePeriod:
+                        #     self.learning()
+                        #     stepsCounter = 0
 
                         # Update the RL state
                         state = nextState
@@ -480,6 +485,9 @@ class PPO:
                         # Continuous tracking of the training performance
                         if plotTraining:
                             totalReward += reward
+
+                    # Execute the learning procedure
+                    self.learning()
 
                     # Store the current training results
                     if plotTraining:
@@ -567,7 +575,7 @@ class PPO:
         # Interact with the environment until the episode termination
         while done == 0:
             # Choose an action according to the RL policy and the current RL state
-            action = self.chooseAction(state)
+            action = self.chooseAction(state, append=False)
 
             # Interact with the environment with the chosen action
             nextState, _, done, _ = testingEnvSmoothed.step(action)
@@ -689,7 +697,7 @@ class PPO:
                         while done == 0:
 
                             # Choose an action according to the RL policy and the current RL state
-                            action, _, _ = self.chooseAction(state)
+                            action = self.chooseAction(state)
 
                             # Interact with the environment with the chosen action
                             nextState, reward, done, info = trainingEnvList[i].step(action)

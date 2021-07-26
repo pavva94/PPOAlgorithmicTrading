@@ -147,7 +147,8 @@ strategies = {
 
 # Dictionary listing the AI trading strategies supported
 strategiesAI = {
-    'TDQN': 'TDQN'
+    'TDQN': 'TDQN',
+    'PPO': 'PPO'
 }
 
 

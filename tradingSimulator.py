@@ -23,14 +23,13 @@ from tabulate import tabulate
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 
 from tradingEnv import TradingEnv
 from tradingPerformance import PerformanceEstimator
 from timeSeriesAnalyser import TimeSeriesAnalyser
 from TDQN import TDQN
-
-
 
 ###############################################################################
 ################################ Global variables #############################
@@ -43,12 +42,12 @@ splitingDate = '2018-1-1'
 
 # Variables defining the default observation and state spaces
 stateLength = 30
-observationSpace = 1 + (stateLength-1)*4
+observationSpace = 1 + (stateLength - 1) * 4
 actionSpace = 2
 
 # Variables setting up the default transaction costs
 percentageCosts = [0, 0.1, 0.2]
-transactionCosts = percentageCosts[1]/100
+transactionCosts = percentageCosts[1] / 100
 
 # Variables specifying the default capital at the disposal of the trader
 money = 100000
@@ -60,97 +59,96 @@ numberOfEpisodes = 50
 
 # Dictionary listing the fictive stocks supported
 fictives = {
-    'Linear Upward' : 'LINEARUP',
-    'Linear Downward' : 'LINEARDOWN',
-    'Sinusoidal' : 'SINUSOIDAL',
-    'Triangle' : 'TRIANGLE',
+    'Linear Upward': 'LINEARUP',
+    'Linear Downward': 'LINEARDOWN',
+    'Sinusoidal': 'SINUSOIDAL',
+    'Triangle': 'TRIANGLE',
 }
 
- # Dictionary listing the 30 stocks considered as testbench
+# Dictionary listing the 30 stocks considered as testbench
 stocks = {
-    'Dow Jones' : 'DIA',
-    'S&P 500' : 'SPY',
-    'NASDAQ 100' : 'QQQ',
-    'FTSE 100' : 'EZU',
-    'Nikkei 225' : 'EWJ',
-    'Google' : 'GOOGL',
-    'Apple' : 'AAPL',
-    'Facebook' : 'FB',
-    'Amazon' : 'AMZN',
-    'Microsoft' : 'MSFT',
-    'Twitter' : 'TWTR',
-    'Nokia' : 'NOK',
-    'Philips' : 'PHIA.AS',
-    'Siemens' : 'SIE.DE',
-    'Baidu' : 'BIDU',
-    'Alibaba' : 'BABA',
-    'Tencent' : '0700.HK',
-    'Sony' : '6758.T',
-    'JPMorgan Chase' : 'JPM',
-    'HSBC' : 'HSBC',
-    'CCB' : '0939.HK',
-    'ExxonMobil' : 'XOM',
-    'Shell' : 'RDSA.AS',
-    'PetroChina' : 'PTR',
-    'Tesla' : 'TSLA',
-    'Volkswagen' : 'VOW3.DE',
-    'Toyota' : '7203.T',
-    'Coca Cola' : 'KO',
-    'AB InBev' : 'ABI.BR',
-    'Kirin' : '2503.T'
+    'Dow Jones': 'DIA',
+    'S&P 500': 'SPY',
+    'NASDAQ 100': 'QQQ',
+    'FTSE 100': 'EZU',
+    'Nikkei 225': 'EWJ',
+    'Google': 'GOOGL',
+    'Apple': 'AAPL',
+    'Facebook': 'FB',
+    'Amazon': 'AMZN',
+    'Microsoft': 'MSFT',
+    'Twitter': 'TWTR',
+    'Nokia': 'NOK',
+    'Philips': 'PHIA.AS',
+    'Siemens': 'SIE.DE',
+    'Baidu': 'BIDU',
+    'Alibaba': 'BABA',
+    'Tencent': '0700.HK',
+    'Sony': '6758.T',
+    'JPMorgan Chase': 'JPM',
+    'HSBC': 'HSBC',
+    'CCB': '0939.HK',
+    'ExxonMobil': 'XOM',
+    'Shell': 'RDSA.AS',
+    'PetroChina': 'PTR',
+    'Tesla': 'TSLA',
+    'Volkswagen': 'VOW3.DE',
+    'Toyota': '7203.T',
+    'Coca Cola': 'KO',
+    'AB InBev': 'ABI.BR',
+    'Kirin': '2503.T'
 }
 
 # Dictionary listing the 5 trading indices considered as testbench
 indices = {
-    'Dow Jones' : 'DIA',
-    'S&P 500' : 'SPY',
-    'NASDAQ 100' : 'QQQ',
-    'FTSE 100' : 'EZU',
-    'Nikkei 225' : 'EWJ'
+    'Dow Jones': 'DIA',
+    'S&P 500': 'SPY',
+    'NASDAQ 100': 'QQQ',
+    'FTSE 100': 'EZU',
+    'Nikkei 225': 'EWJ'
 }
 
 # Dictionary listing the 25 company stocks considered as testbench
 companies = {
-    'Google' : 'GOOGL',
-    'Apple' : 'AAPL',
-    'Facebook' : 'FB',
-    'Amazon' : 'AMZN',
-    'Microsoft' : 'MSFT',
-    'Twitter' : 'TWTR',
-    'Nokia' : 'NOK',
-    'Philips' : 'PHIA.AS',
-    'Siemens' : 'SIE.DE',
-    'Baidu' : 'BIDU',
-    'Alibaba' : 'BABA',
-    'Tencent' : '0700.HK',
-    'Sony' : '6758.T',
-    'JPMorgan Chase' : 'JPM',
-    'HSBC' : 'HSBC',
-    'CCB' : '0939.HK',
-    'ExxonMobil' : 'XOM',
-    'Shell' : 'RDSA.AS',
-    'PetroChina' : 'PTR',
-    'Tesla' : 'TSLA',
-    'Volkswagen' : 'VOW3.DE',
-    'Toyota' : '7203.T',
-    'Coca Cola' : 'KO',
-    'AB InBev' : 'ABI.BR',
-    'Kirin' : '2503.T'
+    'Google': 'GOOGL',
+    'Apple': 'AAPL',
+    'Facebook': 'FB',
+    'Amazon': 'AMZN',
+    'Microsoft': 'MSFT',
+    'Twitter': 'TWTR',
+    'Nokia': 'NOK',
+    'Philips': 'PHIA.AS',
+    'Siemens': 'SIE.DE',
+    'Baidu': 'BIDU',
+    'Alibaba': 'BABA',
+    'Tencent': '0700.HK',
+    'Sony': '6758.T',
+    'JPMorgan Chase': 'JPM',
+    'HSBC': 'HSBC',
+    'CCB': '0939.HK',
+    'ExxonMobil': 'XOM',
+    'Shell': 'RDSA.AS',
+    'PetroChina': 'PTR',
+    'Tesla': 'TSLA',
+    'Volkswagen': 'VOW3.DE',
+    'Toyota': '7203.T',
+    'Coca Cola': 'KO',
+    'AB InBev': 'ABI.BR',
+    'Kirin': '2503.T'
 }
 
 # Dictionary listing the classical trading strategies supported
 strategies = {
-    'Buy and Hold' : 'BuyAndHold',
-    'Sell and Hold' : 'SellAndHold',
-    'Trend Following Moving Averages' : 'MovingAveragesTF',
-    'Mean Reversion Moving Averages' : 'MovingAveragesMR'
+    'Buy and Hold': 'BuyAndHold',
+    'Sell and Hold': 'SellAndHold',
+    'Trend Following Moving Averages': 'MovingAveragesTF',
+    'Mean Reversion Moving Averages': 'MovingAveragesMR'
 }
 
 # Dictionary listing the AI trading strategies supported
 strategiesAI = {
-    'TDQN' : 'TDQN'
+    'TDQN': 'TDQN'
 }
-
 
 
 ###############################################################################
@@ -196,15 +194,14 @@ class TradingSimulator:
         # Display the stocks included in the testbench (trading indices)
         for _, stock in indices.items():
             env = TradingEnv(stock, startingDate, endingDate, 0)
-            env.render() 
+            env.render()
 
-        # Display the stocks included in the testbench (companies)
+            # Display the stocks included in the testbench (companies)
         for _, stock in companies.items():
             env = TradingEnv(stock, startingDate, endingDate, 0)
             env.render()
 
-
-    def analyseTimeSeries(self, stockName, startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate):           
+    def analyseTimeSeries(self, stockName, startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate):
         """
         GOAL: Perform a detailled analysis of the stock market
               price time series.
@@ -219,13 +216,13 @@ class TradingSimulator:
         """
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
+        if (stockName in fictives):
             stock = fictives[stockName]
-        elif(stockName in indices):
+        elif (stockName in indices):
             stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
-        # Error message if the stock specified is not valid or not supported
+        elif (stockName in companies):
+            stock = companies[stockName]
+            # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
             for stock in fictives:
@@ -235,7 +232,7 @@ class TradingSimulator:
             for stock in companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
-        
+
         # TRAINING DATA
         print("\n\n\nAnalysis of the TRAINING phase time series")
         print("------------------------------------------\n")
@@ -266,7 +263,6 @@ class TradingSimulator:
         analyser.stationarityAnalysis()
         analyser.cyclicityAnalysis()
 
-
     def plotEntireTrading(self, trainingEnv, testingEnv):
         """
         GOAL: Plot the entire trading activity, with both the training
@@ -280,7 +276,7 @@ class TradingSimulator:
         """
 
         # Artificial trick to assert the continuity of the Money curve
-        ratio = trainingEnv.data['Money'][-1]/testingEnv.data['Money'][0]
+        ratio = trainingEnv.data['Money'][-1] / testingEnv.data['Money'][0]
         testingEnv.data['Money'] = ratio * testingEnv.data['Money']
 
         # Concatenation of the training and testing trading dataframes
@@ -294,38 +290,37 @@ class TradingSimulator:
 
         # Plot the first graph -> Evolution of the stock market price
         trainingEnv.data['Close'].plot(ax=ax1, color='blue', lw=2)
-        testingEnv.data['Close'].plot(ax=ax1, color='blue', lw=2, label='_nolegend_') 
-        ax1.plot(data.loc[data['Action'] == 1.0].index, 
+        testingEnv.data['Close'].plot(ax=ax1, color='blue', lw=2, label='_nolegend_')
+        ax1.plot(data.loc[data['Action'] == 1.0].index,
                  data['Close'][data['Action'] == 1.0],
-                 '^', markersize=5, color='green')   
-        ax1.plot(data.loc[data['Action'] == -1.0].index, 
+                 '^', markersize=5, color='green')
+        ax1.plot(data.loc[data['Action'] == -1.0].index,
                  data['Close'][data['Action'] == -1.0],
                  'v', markersize=5, color='red')
-        
+
         # Plot the second graph -> Evolution of the trading capital
         trainingEnv.data['Money'].plot(ax=ax2, color='blue', lw=2)
-        testingEnv.data['Money'].plot(ax=ax2, color='blue', lw=2, label='_nolegend_') 
-        ax2.plot(data.loc[data['Action'] == 1.0].index, 
+        testingEnv.data['Money'].plot(ax=ax2, color='blue', lw=2, label='_nolegend_')
+        ax2.plot(data.loc[data['Action'] == 1.0].index,
                  data['Money'][data['Action'] == 1.0],
-                 '^', markersize=5, color='green')   
-        ax2.plot(data.loc[data['Action'] == -1.0].index, 
+                 '^', markersize=5, color='green')
+        ax2.plot(data.loc[data['Action'] == -1.0].index,
                  data['Money'][data['Action'] == -1.0],
                  'v', markersize=5, color='red')
 
         # Plot the vertical line seperating the training and testing datasets
         ax1.axvline(pd.Timestamp(splitingDate), color='black', linewidth=2.0)
         ax2.axvline(pd.Timestamp(splitingDate), color='black', linewidth=2.0)
-        
-        # Generation of the two legends and plotting
-        ax1.legend(["Price", "Long",  "Short", "Train/Test separation"])
-        ax2.legend(["Capital", "Long", "Short", "Train/Test separation"])
-        plt.savefig(''.join(['Figures/', str(trainingEnv.marketSymbol), '_TrainingTestingRendering', '.png'])) 
-        #plt.show()
 
+        # Generation of the two legends and plotting
+        ax1.legend(["Price", "Long", "Short", "Train/Test separation"])
+        ax2.legend(["Capital", "Long", "Short", "Train/Test separation"])
+        plt.savefig(''.join(['Figures/', str(trainingEnv.marketSymbol), '_TrainingTestingRendering', '.png']))
+        # plt.show()
 
     def simulateNewStrategy(self, strategyName, stockName,
                             startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                            observationSpace=observationSpace, actionSpace=actionSpace, 
+                            observationSpace=observationSpace, actionSpace=actionSpace,
                             money=money, stateLength=stateLength, transactionCosts=transactionCosts,
                             bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
                             verbose=True, plotTraining=True, rendering=True, showPerformance=True,
@@ -364,11 +359,11 @@ class TradingSimulator:
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
-        if(strategyName in strategies):
+        if (strategyName in strategies):
             strategy = strategies[strategyName]
             trainingParameters = [bounds, step]
             ai = False
-        elif(strategyName in strategiesAI):
+        elif (strategyName in strategiesAI):
             strategy = strategiesAI[strategyName]
             trainingParameters = [numberOfEpisodes]
             ai = True
@@ -382,13 +377,13 @@ class TradingSimulator:
             raise SystemError("Please check the trading strategy specified.")
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
+        if (stockName in fictives):
             stock = fictives[stockName]
-        elif(stockName in indices):
+        elif (stockName in indices):
             stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
-        # Error message if the stock specified is not valid or not supported
+        elif (stockName in companies):
+            stock = companies[stockName]
+            # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
             for stock in fictives:
@@ -398,7 +393,6 @@ class TradingSimulator:
             for stock in companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
-
 
         # 2. TRAINING PHASE
 
@@ -420,38 +414,36 @@ class TradingSimulator:
                                                verbose=verbose, rendering=rendering,
                                                plotTraining=plotTraining, showPerformance=showPerformance)
 
-        
         # 3. TESTING PHASE
 
         # Initialize the trading environment associated with the testing phase
         testingEnv = TradingEnv(stock, splitingDate, endingDate, money, stateLength, transactionCosts)
 
         # Testing of the trading strategy
-        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering, showPerformance=showPerformance)
-            
+        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering,
+                                             showPerformance=showPerformance)
+
         # Show the entire unified rendering of the training and testing phases
         if rendering:
             self.plotEntireTrading(trainingEnv, testingEnv)
 
-
         # 4. TERMINATION PHASE
 
         # If required, save the trading strategy with Pickle
-        if(saveStrategy):
+        if (saveStrategy):
             fileName = "".join(["Strategies/", strategy, "_", stock, "_", startingDate, "_", splitingDate])
             if ai:
                 tradingStrategy.saveModel(fileName)
             else:
-                fileHandler = open(fileName, 'wb') 
+                fileHandler = open(fileName, 'wb')
                 pickle.dump(tradingStrategy, fileHandler)
 
         # Return of the trading strategy simulated and of the trading environments backtested
         return tradingStrategy, trainingEnv, testingEnv
 
-    
     def simulateExistingStrategy(self, strategyName, stockName,
                                  startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                                 observationSpace=observationSpace, actionSpace=actionSpace, 
+                                 observationSpace=observationSpace, actionSpace=actionSpace,
                                  money=money, stateLength=stateLength, transactionCosts=transactionCosts,
                                  rendering=True, showPerformance=True):
         """
@@ -484,10 +476,10 @@ class TradingSimulator:
         # 1. INITIALIZATION PHASE
 
         # Retrieve the trading strategy information
-        if(strategyName in strategies):
+        if (strategyName in strategies):
             strategy = strategies[strategyName]
             ai = False
-        elif(strategyName in strategiesAI):
+        elif (strategyName in strategiesAI):
             strategy = strategiesAI[strategyName]
             ai = True
         # Error message if the strategy specified is not valid or not supported
@@ -500,13 +492,13 @@ class TradingSimulator:
             raise SystemError("Please check the trading strategy specified.")
 
         # Retrieve the trading stock information
-        if(stockName in fictives):
+        if (stockName in fictives):
             stock = fictives[stockName]
-        elif(stockName in indices):
+        elif (stockName in indices):
             stock = indices[stockName]
-        elif(stockName in companies):
-            stock = companies[stockName]    
-        # Error message if the stock specified is not valid or not supported
+        elif (stockName in companies):
+            stock = companies[stockName]
+            # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
             for stock in fictives:
@@ -516,7 +508,6 @@ class TradingSimulator:
             for stock in companies:
                 print("".join(['- ', stock]))
             raise SystemError("Please check the stock specified.")
-        
 
         # 2. LOADING PHASE    
 
@@ -531,11 +522,10 @@ class TradingSimulator:
                 tradingStrategy = className(observationSpace, actionSpace)
                 tradingStrategy.loadModel(fileName)
             else:
-                fileHandler = open(fileName, 'rb') 
+                fileHandler = open(fileName, 'rb')
                 tradingStrategy = pickle.load(fileHandler)
         else:
             raise SystemError("The trading strategy specified does not exist, please provide a valid one.")
-
 
         # 3. TESTING PHASE
 
@@ -544,8 +534,10 @@ class TradingSimulator:
         testingEnv = TradingEnv(stock, splitingDate, endingDate, money, stateLength, transactionCosts)
 
         # Testing of the trading strategy
-        trainingEnv = tradingStrategy.testing(trainingEnv, trainingEnv, rendering=rendering, showPerformance=showPerformance)
-        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering, showPerformance=showPerformance)
+        trainingEnv = tradingStrategy.testing(trainingEnv, trainingEnv, rendering=rendering,
+                                              showPerformance=showPerformance)
+        testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering,
+                                             showPerformance=showPerformance)
 
         # Show the entire unified rendering of the training and testing phases
         if rendering:
@@ -553,10 +545,9 @@ class TradingSimulator:
 
         return tradingStrategy, trainingEnv, testingEnv
 
-
     def evaluateStrategy(self, strategyName,
                          startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                         observationSpace=observationSpace, actionSpace=actionSpace, 
+                         observationSpace=observationSpace, actionSpace=actionSpace,
                          money=money, stateLength=stateLength, transactionCosts=transactionCosts,
                          bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
                          verbose=False, plotTraining=False, rendering=False, showPerformance=False,
@@ -591,26 +582,34 @@ class TradingSimulator:
         """
 
         # Initialization of some variables
-        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"], ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"], ["Ratio Average Profit/Loss"], ["Skewness"]]
+        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"],
+                            ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"],
+                            ["Ratio Average Profit/Loss"], ["Skewness"]]
         headers = ["Performance Indicator"]
 
         # Loop through each stock included in the testbench (progress bar)
         print("Trading strategy evaluation progression:")
-        #for stock in tqdm(itertools.chain(indices, companies)):
+        # for stock in tqdm(itertools.chain(indices, companies)):
         for stock in tqdm(stocks):
 
             # Simulation of the trading strategy on the current stock
             try:
                 # Simulate an already existing trading strategy on the current stock
-                _, _, testingEnv = self.simulateExistingStrategy(strategyName, stock, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, rendering, showPerformance)
+                _, _, testingEnv = self.simulateExistingStrategy(strategyName, stock, startingDate, endingDate,
+                                                                 splitingDate, observationSpace, actionSpace, money,
+                                                                 stateLength, transactionCosts, rendering,
+                                                                 showPerformance)
             except SystemError:
                 # Simulate a new trading strategy on the current stock
-                _, _, testingEnv = self.simulateNewStrategy(strategyName, stock, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, bounds, step, numberOfEpisodes, verbose, plotTraining, rendering, showPerformance, saveStrategy)
+                _, _, testingEnv = self.simulateNewStrategy(strategyName, stock, startingDate, endingDate, splitingDate,
+                                                            observationSpace, actionSpace, money, stateLength,
+                                                            transactionCosts, bounds, step, numberOfEpisodes, verbose,
+                                                            plotTraining, rendering, showPerformance, saveStrategy)
 
             # Retrieve the trading performance associated with the trading strategy
             analyser = PerformanceEstimator(testingEnv.data)
             performance = analyser.computePerformance()
-            
+
             # Get the required format for the display of the performance table
             headers.append(stock)
             for i in range(len(performanceTable)):
@@ -626,10 +625,9 @@ class TradingSimulator:
 
         return performanceTable
 
-
     def evaluateStock(self, stockName,
                       startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
-                      observationSpace=observationSpace, actionSpace=actionSpace,  
+                      observationSpace=observationSpace, actionSpace=actionSpace,
                       money=money, stateLength=stateLength, transactionCosts=transactionCosts,
                       bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
                       verbose=False, plotTraining=False, rendering=False, showPerformance=False,
@@ -663,7 +661,9 @@ class TradingSimulator:
         """
 
         # Initialization of some variables
-        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"], ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"], ["Ratio Average Profit/Loss"], ["Skewness"]]
+        performanceTable = [["Profit & Loss (P&L)"], ["Annualized Return"], ["Annualized Volatility"], ["Sharpe Ratio"],
+                            ["Sortino Ratio"], ["Maximum DrawDown"], ["Maximum DrawDown Duration"], ["Profitability"],
+                            ["Ratio Average Profit/Loss"], ["Skewness"]]
         headers = ["Performance Indicator"]
 
         # Loop through all the trading strategies supported (progress bar)
@@ -673,15 +673,21 @@ class TradingSimulator:
             # Simulation of the current trading strategy on the stock
             try:
                 # Simulate an already existing trading strategy on the stock
-                _, _, testingEnv = self.simulateExistingStrategy(strategy, stockName, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, rendering, showPerformance)
+                _, _, testingEnv = self.simulateExistingStrategy(strategy, stockName, startingDate, endingDate,
+                                                                 splitingDate, observationSpace, actionSpace, money,
+                                                                 stateLength, transactionCosts, rendering,
+                                                                 showPerformance)
             except SystemError:
                 # Simulate a new trading strategy on the stock
-                _, _, testingEnv = self.simulateNewStrategy(strategy, stockName, startingDate, endingDate, splitingDate, observationSpace, actionSpace, money, stateLength, transactionCosts, bounds, step, numberOfEpisodes, verbose, plotTraining, rendering, showPerformance, saveStrategy)
+                _, _, testingEnv = self.simulateNewStrategy(strategy, stockName, startingDate, endingDate, splitingDate,
+                                                            observationSpace, actionSpace, money, stateLength,
+                                                            transactionCosts, bounds, step, numberOfEpisodes, verbose,
+                                                            plotTraining, rendering, showPerformance, saveStrategy)
 
             # Retrieve the trading performance associated with the trading strategy
             analyser = PerformanceEstimator(testingEnv.data)
             performance = analyser.computePerformance()
-            
+
             # Get the required format for the display of the performance table
             headers.append(strategy)
             for i in range(len(performanceTable)):

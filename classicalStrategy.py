@@ -20,7 +20,6 @@ from abc import ABC, abstractmethod
 from tradingPerformance import PerformanceEstimator
 
 
-
 ###############################################################################
 ########################### Class tradingStrategy #############################
 ###############################################################################
@@ -53,7 +52,6 @@ class tradingStrategy(ABC):
         """
 
         pass
-    
 
     @abstractmethod
     def training(self, trainingEnv, trainingParameters=[],
@@ -78,7 +76,6 @@ class tradingStrategy(ABC):
 
         pass
 
-
     @abstractmethod
     def testing(self, testingEnv, trainingEnv, rendering=False, showPerformance=False):
         """
@@ -96,7 +93,6 @@ class tradingStrategy(ABC):
         """
 
         pass
-
 
 
 ###############################################################################
@@ -133,7 +129,6 @@ class BuyAndHold(tradingStrategy):
 
         # Trading position decision -> always long
         return 1
-    
 
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
@@ -167,15 +162,17 @@ class BuyAndHold(tradingStrategy):
 
         # If required, print a feedback about the training
         if verbose:
-            print("No training is required as the simple Buy and Hold trading strategy does not involve any tunable parameters.")
-        
+            print(
+                "No training is required as the simple Buy and Hold trading strategy does not involve any tunable parameters.")
+
         # If required, render the trading environment backtested
         if rendering:
             trainingEnv.render()
-        
+
         # If required, plot the training results
         if plotTraining:
-            print("No training results are available as the simple Buy and Hold trading strategy does not involve any tunable parameters.")
+            print(
+                "No training results are available as the simple Buy and Hold trading strategy does not involve any tunable parameters.")
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -184,7 +181,6 @@ class BuyAndHold(tradingStrategy):
 
         # Return the trading environment backtested (training set)
         return trainingEnv
-
 
     def testing(self, trainingEnv, testingEnv, rendering=False, showPerformance=False):
         """
@@ -218,7 +214,6 @@ class BuyAndHold(tradingStrategy):
 
         # Return the trading environment backtested (testing set)
         return testingEnv
-
 
 
 ###############################################################################
@@ -255,7 +250,6 @@ class SellAndHold(tradingStrategy):
 
         # Trading position decision -> always short
         return 0
-    
 
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
@@ -289,15 +283,17 @@ class SellAndHold(tradingStrategy):
 
         # If required, print a feedback about the training
         if verbose:
-            print("No training is required as the simple Sell and Hold trading strategy does not involve any tunable parameters.")
-        
+            print(
+                "No training is required as the simple Sell and Hold trading strategy does not involve any tunable parameters.")
+
         # If required, render the trading environment backtested
         if rendering:
             trainingEnv.render()
-        
+
         # If required, plot the training results
         if plotTraining:
-            print("No training results are available as the simple Sell and Hold trading strategy does not involve any tunable parameters.")
+            print(
+                "No training results are available as the simple Sell and Hold trading strategy does not involve any tunable parameters.")
 
         # If required, print the strategy performance in a table
         if showPerformance:
@@ -306,7 +302,6 @@ class SellAndHold(tradingStrategy):
 
         # Return the trading environment backtested (training set)
         return trainingEnv
-
 
     def testing(self, trainingEnv, testingEnv, rendering=False, showPerformance=False):
         """
@@ -340,7 +335,6 @@ class SellAndHold(tradingStrategy):
 
         # Return the trading environment backtested (testing set)
         return testingEnv
-
 
 
 ###############################################################################
@@ -381,7 +375,6 @@ class MovingAveragesTF(tradingStrategy):
 
         self.parameters = parameters
 
-
     def setParameters(self, parameters):
         """
         GOAL: Set new values for the parameters of the trading strategy, 
@@ -394,7 +387,6 @@ class MovingAveragesTF(tradingStrategy):
 
         self.parameters = parameters
 
-    
     def processState(self, state):
         """
         GOAL: Process the trading environment state to obtain the required format.
@@ -405,7 +397,6 @@ class MovingAveragesTF(tradingStrategy):
         """
 
         return state[0]
-
 
     def chooseAction(self, state):
         """
@@ -425,13 +416,12 @@ class MovingAveragesTF(tradingStrategy):
         longAverage = np.mean(state[-self.parameters[1]:])
 
         # Comparison of the two moving averages
-        if(shortAverage >= longAverage):
+        if (shortAverage >= longAverage):
             # Long position
             return 1
         else:
             # Short position
             return 0
-    
 
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
@@ -456,7 +446,7 @@ class MovingAveragesTF(tradingStrategy):
         # Compute the dimension of the parameter search space
         bounds = trainingParameters[0]
         step = trainingParameters[1]
-        dimension = math.ceil((bounds[1] - bounds[0])/step)
+        dimension = math.ceil((bounds[1] - bounds[0]) / step)
 
         # Initialize some variables required for the simulations
         trainingEnv.reset()
@@ -481,10 +471,10 @@ class MovingAveragesTF(tradingStrategy):
             for longer in range(bounds[0], bounds[1], step):
 
                 # Obvious restriction on the parameters
-                if(shorter < longer):
+                if (shorter < longer):
 
                     # If required, print the progression of the training
-                    if(verbose):       
+                    if (verbose):
                         print("".join(["Training progression: ", str(count), "/", str(length)]), end='\r', flush=True)
 
                     # Apply the trading strategy with the current combination of parameters
@@ -499,11 +489,11 @@ class MovingAveragesTF(tradingStrategy):
                     results[i][j] = performance
 
                     # Track the best performance and parameters
-                    if(performance > bestPerformance):
+                    if (performance > bestPerformance):
                         bestShort = shorter
                         bestLong = longer
                         bestPerformance = performance
-                    
+
                     # Reset of the trading environment
                     trainingEnv.reset()
                     count += 1
@@ -522,7 +512,7 @@ class MovingAveragesTF(tradingStrategy):
         # If required, render the trading environment backtested
         if rendering:
             trainingEnv.render()
-        
+
         # If required, plot the training results
         if plotTraining:
             self.plotTraining(results, bounds, step, trainingEnv.marketSymbol)
@@ -534,7 +524,6 @@ class MovingAveragesTF(tradingStrategy):
 
         # Return the trading environment backtested (training set)
         return trainingEnv
-
 
     def testing(self, trainingEnv, testingEnv, rendering=False, showPerformance=False):
         """
@@ -563,12 +552,11 @@ class MovingAveragesTF(tradingStrategy):
 
         # If required, print the strategy performance in a table
         if showPerformance:
-            analyser = PerformanceEstimator(testingEnv.data,)
+            analyser = PerformanceEstimator(testingEnv.data, )
             analyser.displayPerformance('MATF')
 
         # Return the trading environment backtested (testing set)
         return testingEnv
-
 
     def plotTraining(self, results, bounds, step, marketSymbol):
         """
@@ -600,7 +588,7 @@ class MovingAveragesTF(tradingStrategy):
         ax.plot_surface(xx, yy, results, cmap=plt.cm.get_cmap('jet'))
         ax.view_init(45, 45)
         plt.savefig(''.join(['Figures/', str(marketSymbol), '_MATFOptimization3D', '.png']))
-        #plt.show()
+        # plt.show()
 
         # Plot the same information as a 2D graph
         fig = plt.figure(figsize=(10, 10))
@@ -613,8 +601,7 @@ class MovingAveragesTF(tradingStrategy):
         plt.colorbar(graph)
         plt.gca().invert_yaxis()
         plt.savefig(''.join(['Figures/', str(marketSymbol), '_MATFOptimization2D', '.png']))
-        #plt.show()
-    
+        # plt.show()
 
 
 ###############################################################################
@@ -655,7 +642,6 @@ class MovingAveragesMR(tradingStrategy):
 
         self.parameters = parameters
 
-
     def setParameters(self, parameters):
         """
         GOAL: Set new values for the parameters of the trading strategy, 
@@ -668,7 +654,6 @@ class MovingAveragesMR(tradingStrategy):
 
         self.parameters = parameters
 
-    
     def processState(self, state):
         """
         GOAL: Process the trading environment state to obtain the required format.
@@ -679,7 +664,6 @@ class MovingAveragesMR(tradingStrategy):
         """
 
         return state[0]
-
 
     def chooseAction(self, state):
         """
@@ -699,13 +683,12 @@ class MovingAveragesMR(tradingStrategy):
         longAverage = np.mean(state[-self.parameters[1]:])
 
         # Comparison of the two moving averages
-        if(shortAverage <= longAverage):
+        if (shortAverage <= longAverage):
             # Long position
             return 1
         else:
             # Short position
             return 0
-    
 
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
@@ -730,7 +713,7 @@ class MovingAveragesMR(tradingStrategy):
         # Compute the dimension of the parameter search space
         bounds = trainingParameters[0]
         step = trainingParameters[1]
-        dimension = math.ceil((bounds[1] - bounds[0])/step)
+        dimension = math.ceil((bounds[1] - bounds[0]) / step)
 
         # Initialize some variables required for the simulations
         trainingEnv.reset()
@@ -755,10 +738,10 @@ class MovingAveragesMR(tradingStrategy):
             for longer in range(bounds[0], bounds[1], step):
 
                 # Obvious restriction on the parameters
-                if(shorter < longer):
+                if (shorter < longer):
 
                     # If required, print the progression of the training
-                    if(verbose):       
+                    if (verbose):
                         print("".join(["Training progression: ", str(count), "/", str(length)]), end='\r', flush=True)
 
                     # Apply the trading strategy with the current combination of parameters
@@ -773,11 +756,11 @@ class MovingAveragesMR(tradingStrategy):
                     results[i][j] = performance
 
                     # Track the best performance and parameters
-                    if(performance > bestPerformance):
+                    if (performance > bestPerformance):
                         bestShort = shorter
                         bestLong = longer
                         bestPerformance = performance
-                    
+
                     # Reset of the trading environment
                     trainingEnv.reset()
                     count += 1
@@ -796,7 +779,7 @@ class MovingAveragesMR(tradingStrategy):
         # If required, render the trading environment backtested
         if rendering:
             trainingEnv.render()
-        
+
         # If required, plot the training results
         if plotTraining:
             self.plotTraining(results, bounds, step, trainingEnv.marketSymbol)
@@ -808,7 +791,6 @@ class MovingAveragesMR(tradingStrategy):
 
         # Return the trading environment backtested (training set)
         return trainingEnv
-
 
     def testing(self, trainingEnv, testingEnv, rendering=False, showPerformance=False):
         """
@@ -843,7 +825,6 @@ class MovingAveragesMR(tradingStrategy):
         # Return the trading environment backtested (testing set)
         return testingEnv
 
-
     def plotTraining(self, results, bounds, step, marketSymbol):
         """
         GOAL: Plot both 2D and 3D graphs illustrating the results of the entire
@@ -874,7 +855,7 @@ class MovingAveragesMR(tradingStrategy):
         ax.plot_surface(xx, yy, results, cmap=plt.cm.get_cmap('jet'))
         ax.view_init(45, 45)
         plt.savefig(''.join(['Figures/', str(marketSymbol), '_MAMROptimization3D', '.png']))
-        #plt.show()
+        # plt.show()
 
         # Plot the same information as a 2D graph
         fig = plt.figure(figsize=(10, 10))
@@ -887,5 +868,4 @@ class MovingAveragesMR(tradingStrategy):
         plt.colorbar(graph)
         plt.gca().invert_yaxis()
         plt.savefig(''.join(['Figures/', str(marketSymbol), '_MAMROptimization2D', '.png']))
-        #plt.show()
-        
+        # plt.show()

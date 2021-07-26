@@ -399,7 +399,7 @@ class TradingSimulator:
         # Initialize the trading environment associated with the training phase
         trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, stateLength, transactionCosts)
 
-        # Instanciate the strategy classes
+        # Instantiate the strategy classes
         if ai:
             strategyModule = importlib.import_module(str(strategy))
             className = getattr(strategyModule, strategy)

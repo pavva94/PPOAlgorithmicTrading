@@ -104,11 +104,11 @@ class ActorCritic(nn.Module):
 
 class PPO:
     """
-    GOAL: Implementing an intelligent trading agent based on the DQN
+    GOAL: Implementing an intelligent trading agent based on the PPO
           Reinforcement Learning algorithm.
 
     VARIABLES:  - device: Hardware specification (CPU or GPU).
-                - gamma: Discount factor of the DQN algorithm.
+                - gamma: Discount factor of the PPO algorithm.
                 - learningRate: Learning rate of the ADAM optimizer.
                 - capacity: Capacity of the experience replay memory.
                 - batchSize: Size of the batch to sample from the replay memory.
@@ -140,9 +140,9 @@ class PPO:
                                              the RL policy learned, following the
                                              Epsilon Greedy exploration mechanism.
                 - learn: Sample a batch of experiences and learn from that info.
-                - training: Train the trading DQN agent by interacting with its
+                - training: Train the trading PPO agent by interacting with its
                             trading environment.
-                - testing: Test the DQN agent trading policy on a new trading environment.
+                - testing: Test the PPO agent trading policy on a new trading environment.
                 - plotExpectedPerformance: Plot the expected performance of the intelligent
                                    DRL trading agent.
                 - saveModel: Save the RL policy model.
@@ -157,14 +157,14 @@ class PPO:
                  K_epochs=80, eps_clip=0.2):
 
         """
-        GOAL: Initializing the RL agent based on the DQN Reinforcement Learning
-              algorithm, by setting up the DQN algorithm parameters as well as
-              the DQN Deep Neural Network.
+        GOAL: Initializing the RL agent based on the PPO Reinforcement Learning
+              algorithm, by setting up the PPO algorithm parameters as well as
+              the PPO Deep Neural Network.
 
         INPUTS: - observationSpace: Size of the RL observation space.
                 - actionSpace: Size of the RL action space.
                 - numberOfNeurons: Number of neurons per layer in the Deep Neural Network.
-                - gamma: Discount factor of the DQN algorithm.
+                - gamma: Discount factor of the PPO algorithm.
                 - learningRateActor: Learning rate of the ADAM optimizer for Actor.
                 - learningRateCritic: Learning rate of the ADAM optimizer for Critic.
 
@@ -177,7 +177,7 @@ class PPO:
         # Check availability of CUDA for the hardware (CPU or GPU)
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-        # Set the general parameters of the DQN algorithm
+        # Set the general parameters of the PPO algorithm
         self.learningRateActor = learningRateActor
         self.learningRateCritic = learningRateCritic
 
@@ -299,7 +299,7 @@ class PPO:
         """
         GOAL: Process the RL reward returned by the environment by clipping
               its value. Such technique has been shown to improve the stability
-              the DQN algorithm.
+              the PPO algorithm.
 
         INPUTS: - reward: RL reward returned by the environment.
 
@@ -314,7 +314,7 @@ class PPO:
               RL policy as well as the current RL state observed.
 
         INPUTS: - state: RL state returned by the environment.
-                - append: boolean define if append or not the data
+                - append: boolean defining if append or not the data to the buffer
 
         OUTPUTS: - action: RL action chosen from the action space.
                  - Q: State-action value function associated.
@@ -454,7 +454,10 @@ class PPO:
                     while done == 0:
 
                         # Choose an action according to the RL policy and the current RL state
+                        print("State:")
+                        print(state)
                         action = self.chooseAction(state)
+                        print("Action" + str(action))
 
                         # Interact with the environment with the chosen action
                         nextState, reward, done, info = trainingEnvList[i].step(action)
@@ -538,7 +541,7 @@ class PPO:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(trainingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('PPO')
 
         # Closing of the tensorboard writer
         self.writer.close()
@@ -591,7 +594,7 @@ class PPO:
         # If required, print the strategy performance in a table
         if showPerformance:
             analyser = PerformanceEstimator(testingEnv.data)
-            analyser.displayPerformance('TDQN')
+            analyser.displayPerformance('PPO')
 
         return testingEnv
 
@@ -715,7 +718,7 @@ class PPO:
                             # otherNextState = self.processState(info['State'], coefficients)
                             # To be added to buffer but without action?!?!?
 
-                            # Execute the DQN learning procedure
+                            # Execute the PPO learning procedure
                             stepsCounter += 1
                             if stepsCounter == learningUpdatePeriod:
                                 self.learning()

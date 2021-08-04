@@ -204,13 +204,13 @@ class TradingSimulator:
 
     def analyseTimeSeries(self, stockName, startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate):
         """
-        GOAL: Perform a detailled analysis of the stock market
+        GOAL: Perform a detailed analysis of the stock market
               price time series.
         
         INPUTS: - stockName: Name of the stock (in the testbench).
                 - startingDate: Beginning of the trading horizon.
                 - endingDate: Ending of the trading horizon.
-                - splitingDate: Spliting date between the training dataset
+                - splitingDate: Splitting date between the training dataset
                                 and the testing dataset.
         
         OUTPUTS: /

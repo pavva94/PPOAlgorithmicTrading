@@ -83,27 +83,45 @@ class TradingEnv(gym.Env):
         """
 
         # CASE 1: Fictive stock generation
-        if (marketSymbol in fictiveStocks):
+        if marketSymbol in fictiveStocks:
             stockGeneration = StockGenerator()
-            if (marketSymbol == 'LINEARUP'):
+            if marketSymbol == 'LINEARUP':
                 self.data = stockGeneration.linearUp(startingDate, endingDate)
-            elif (marketSymbol == 'LINEARDOWN'):
+            elif marketSymbol == 'LINEARDOWN':
                 self.data = stockGeneration.linearDown(startingDate, endingDate)
-            elif (marketSymbol == 'SINUSOIDAL'):
+            elif marketSymbol == 'SINUSOIDAL':
                 self.data = stockGeneration.sinusoidal(startingDate, endingDate)
             else:
                 self.data = stockGeneration.triangle(startingDate, endingDate)
 
         # CASE 2: Real stock loading
         else:
-            # Check if the stock market data is already present in the database
             csvConverter = CSVHandler()
-            csvName = "".join(['Data/', marketSymbol, '_', startingDate, '_', endingDate])
-            exists = os.path.isfile(csvName + '.csv')
+            # Check if the marketSymbol is a list of marketSymbol and
+            # if the stock market data is already present in the database
+            exists = False
+            existsMultiple = False
+            if type(marketSymbol) is list and marketSymbol is not []:
+                csvName = []
+                existsMultiple = True
+                for marSym in marketSymbol:
+                    csvNameCheck = "".join(['Data/', marSym, '_', startingDate, '_', endingDate])
+                    csvName.append(csvNameCheck)
+                    if not os.path.isfile(csvNameCheck + '.csv'):
+                        existsMultiple = False
+                        break
+            else:
+                # Check if the stock market data is already present in the database
+                csvName = "".join(['Data/', marketSymbol, '_', startingDate, '_', endingDate])
+                exists = os.path.isfile(csvName + '.csv')
 
             # If affirmative, load the stock market data from the database
-            if (exists):
+            if exists:
                 self.data = csvConverter.CSVToDataframe(csvName)
+            if existsMultiple:
+                self.data = csvConverter.CSVToDataframe(csvName[0])
+                for csvN in csvName[1:]:
+                    self.data.append(csvConverter.CSVToDataframe(csvN))
             # Otherwise, download the stock market data from Yahoo Finance and save it in the database
             else:
                 downloader1 = YahooFinance()
@@ -202,7 +220,7 @@ class TradingEnv(gym.Env):
         deltaValues = - cash - numberOfShares * price * (1 + self.epsilon) * (1 + self.transactionCosts)
         if deltaValues < 0:
             lowerBound = deltaValues / (
-                        price * (2 * self.transactionCosts + (self.epsilon * (1 + self.transactionCosts))))
+                    price * (2 * self.transactionCosts + (self.epsilon * (1 + self.transactionCosts))))
         else:
             lowerBound = deltaValues / (price * self.epsilon * (1 + self.transactionCosts))
         return lowerBound
@@ -220,7 +238,7 @@ class TradingEnv(gym.Env):
                  - info: Additional information returned to the RL agent.
         """
 
-        # Stting of some local variables
+        # Setting of some local variables
         t = self.t
         numberOfShares = self.numberOfShares
         customReward = False
@@ -237,17 +255,17 @@ class TradingEnv(gym.Env):
                 self.numberOfShares = math.floor(
                     self.data['Cash'][t - 1] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 self.data['Cash'][t] = self.data['Cash'][t - 1] - self.numberOfShares * self.data['Close'][t] * (
-                            1 + self.transactionCosts)
+                        1 + self.transactionCosts)
                 self.data['Holdings'][t] = self.numberOfShares * self.data['Close'][t]
                 self.data['Action'][t] = 1
             # Case c: Short -> Long
             else:
                 self.data['Cash'][t] = self.data['Cash'][t - 1] - self.numberOfShares * self.data['Close'][t] * (
-                            1 + self.transactionCosts)
+                        1 + self.transactionCosts)
                 self.numberOfShares = math.floor(
                     self.data['Cash'][t] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 self.data['Cash'][t] = self.data['Cash'][t] - self.numberOfShares * self.data['Close'][t] * (
-                            1 + self.transactionCosts)
+                        1 + self.transactionCosts)
                 self.data['Holdings'][t] = self.numberOfShares * self.data['Close'][t]
                 self.data['Action'][t] = 1
 
@@ -265,7 +283,7 @@ class TradingEnv(gym.Env):
                     numberOfSharesToBuy = min(math.floor(lowerBound), self.numberOfShares)
                     self.numberOfShares -= numberOfSharesToBuy
                     self.data['Cash'][t] = self.data['Cash'][t - 1] - numberOfSharesToBuy * self.data['Close'][t] * (
-                                1 + self.transactionCosts)
+                            1 + self.transactionCosts)
                     self.data['Holdings'][t] = - self.numberOfShares * self.data['Close'][t]
                     customReward = True
             # Case b: No position -> Short
@@ -273,17 +291,17 @@ class TradingEnv(gym.Env):
                 self.numberOfShares = math.floor(
                     self.data['Cash'][t - 1] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 self.data['Cash'][t] = self.data['Cash'][t - 1] + self.numberOfShares * self.data['Close'][t] * (
-                            1 - self.transactionCosts)
+                        1 - self.transactionCosts)
                 self.data['Holdings'][t] = - self.numberOfShares * self.data['Close'][t]
                 self.data['Action'][t] = -1
             # Case c: Long -> Short
             else:
                 self.data['Cash'][t] = self.data['Cash'][t - 1] + self.numberOfShares * self.data['Close'][t] * (
-                            1 - self.transactionCosts)
+                        1 - self.transactionCosts)
                 self.numberOfShares = math.floor(
                     self.data['Cash'][t] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 self.data['Cash'][t] = self.data['Cash'][t] + self.numberOfShares * self.data['Close'][t] * (
-                            1 - self.transactionCosts)
+                        1 - self.transactionCosts)
                 self.data['Holdings'][t] = - self.numberOfShares * self.data['Close'][t]
                 self.data['Action'][t] = -1
 
@@ -323,11 +341,11 @@ class TradingEnv(gym.Env):
                 numberOfShares = math.floor(
                     self.data['Cash'][t - 1] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 otherCash = self.data['Cash'][t - 1] - numberOfShares * self.data['Close'][t] * (
-                            1 + self.transactionCosts)
+                        1 + self.transactionCosts)
                 otherHoldings = numberOfShares * self.data['Close'][t]
             else:
                 otherCash = self.data['Cash'][t - 1] - numberOfShares * self.data['Close'][t] * (
-                            1 + self.transactionCosts)
+                        1 + self.transactionCosts)
                 numberOfShares = math.floor(otherCash / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 otherCash = otherCash - numberOfShares * self.data['Close'][t] * (1 + self.transactionCosts)
                 otherHoldings = numberOfShares * self.data['Close'][t]
@@ -343,18 +361,18 @@ class TradingEnv(gym.Env):
                     numberOfSharesToBuy = min(math.floor(lowerBound), numberOfShares)
                     numberOfShares -= numberOfSharesToBuy
                     otherCash = self.data['Cash'][t - 1] - numberOfSharesToBuy * self.data['Close'][t] * (
-                                1 + self.transactionCosts)
+                            1 + self.transactionCosts)
                     otherHoldings = - numberOfShares * self.data['Close'][t]
                     customReward = True
             elif (self.data['Position'][t - 1] == 0):
                 numberOfShares = math.floor(
                     self.data['Cash'][t - 1] / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 otherCash = self.data['Cash'][t - 1] + numberOfShares * self.data['Close'][t] * (
-                            1 - self.transactionCosts)
+                        1 - self.transactionCosts)
                 otherHoldings = - numberOfShares * self.data['Close'][t]
             else:
                 otherCash = self.data['Cash'][t - 1] + numberOfShares * self.data['Close'][t] * (
-                            1 - self.transactionCosts)
+                        1 - self.transactionCosts)
                 numberOfShares = math.floor(otherCash / (self.data['Close'][t] * (1 + self.transactionCosts)))
                 otherCash = otherCash + numberOfShares * self.data['Close'][t] * (1 - self.transactionCosts)
                 otherHoldings = - self.numberOfShares * self.data['Close'][t]

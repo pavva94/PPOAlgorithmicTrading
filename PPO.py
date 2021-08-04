@@ -442,9 +442,7 @@ class PPO:
                     startingPoint = random.randrange(len(trainingEnvList[i].data.index))
                     trainingEnvList[i].setStartingPoint(startingPoint)
                     state = self.processState(trainingEnvList[i].state, coefficients)
-                    previousAction = 0
                     done = 0
-                    stepsCounter = 0
 
                     # Set the performance tracking veriables
                     if plotTraining:
@@ -454,10 +452,7 @@ class PPO:
                     while done == 0:
 
                         # Choose an action according to the RL policy and the current RL state
-                        print("State:")
-                        print(state)
                         action = self.chooseAction(state)
-                        print("Action" + str(action))
 
                         # Interact with the environment with the chosen action
                         nextState, reward, done, info = trainingEnvList[i].step(action)

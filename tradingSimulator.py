@@ -378,13 +378,25 @@ class TradingSimulator:
             raise SystemError("Please check the trading strategy specified.")
 
         # Retrieve the trading stock information
-        if (stockName in fictives):
+        if type(stockName) is list:
+            # if it's a list a need a different process
+            stock = []
+            if (stockName[0] in fictives):
+                for s in stockName:
+                    stock.append(fictives[s])
+            elif (stockName[0] in indices):
+                for s in stockName:
+                    stock.append(indices[s])
+            elif (stockName[0] in companies):
+                for s in stockName:
+                    stock.append(companies[s])
+        elif (stockName in fictives):
             stock = fictives[stockName]
         elif (stockName in indices):
             stock = indices[stockName]
         elif (stockName in companies):
             stock = companies[stockName]
-            # Error message if the stock specified is not valid or not supported
+        # Error message if the stock specified is not valid or not supported
         else:
             print("The stock specified is not valid, only the following stocks are supported:")
             for stock in fictives:

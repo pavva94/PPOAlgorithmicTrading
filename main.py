@@ -35,6 +35,11 @@ if (__name__ == '__main__'):
     simulator = TradingSimulator()
     strategy = args.strategy
     stock = args.stock
+    # check if stock are multiple, divided by -
+    if '-' in stock:
+        stock = stock.split('-')
+        print(stock)
+
     numberOfEpisodes = args.numberOfEpisodes
     displayTestbench = args.displayTestbench
     analyseTimeSeries = args.analyseTimeSeries

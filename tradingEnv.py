@@ -118,10 +118,11 @@ class TradingEnv(gym.Env):
             # If affirmative, load the stock market data from the database
             if exists:
                 self.data = csvConverter.CSVToDataframe(csvName)
-            if existsMultiple:
+            elif existsMultiple:
                 self.data = csvConverter.CSVToDataframe(csvName[0])
                 for csvN in csvName[1:]:
                     self.data.append(csvConverter.CSVToDataframe(csvN))
+                    self.data = pd.concat([self.data, csvConverter.CSVToDataframe(csvN)])
             # Otherwise, download the stock market data from Yahoo Finance and save it in the database
             else:
                 downloader1 = YahooFinance()

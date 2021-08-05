@@ -500,9 +500,20 @@ class TradingSimulator:
                 print("".join(['- ', strategy]))
             raise SystemError("Please check the trading strategy specified.")
 
+        # Instantiate the strategy classes
+        if ai:
+            strategyModule = importlib.import_module(str(strategy))
+            className = getattr(strategyModule, strategy)
+            tradingStrategy = className(observationSpace, actionSpace)
+        else:
+            strategyModule = importlib.import_module('classicalStrategy')
+            className = getattr(strategyModule, strategy)
+            tradingStrategy = className()
+
         tradingStrategies, trainingEnvs, testingEnvs = [], [], []
 
         for stockName in stockNames:
+            print("Stock:" + str(stockName))
             # Retrieve the trading stock information
             if stockName in fictives:
                 stock = fictives[stockName]
@@ -525,16 +536,6 @@ class TradingSimulator:
 
             # Initialize the trading environment associated with the training phase
             trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, stateLength, transactionCosts)
-
-            # Instantiate the strategy classes
-            if ai:
-                strategyModule = importlib.import_module(str(strategy))
-                className = getattr(strategyModule, strategy)
-                tradingStrategy = className(observationSpace, actionSpace)
-            else:
-                strategyModule = importlib.import_module('classicalStrategy')
-                className = getattr(strategyModule, strategy)
-                tradingStrategy = className()
 
             # Training of the trading strategy
             trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,

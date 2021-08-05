@@ -35,6 +35,13 @@ if (__name__ == '__main__'):
     simulator = TradingSimulator()
     strategy = args.strategy
     stock = args.stock
+    multipleStock = False
+    # check if stock are multiple, divided by char '-'
+    if '-' in stock:
+        stock = stock.split('-')
+        print(stock)
+        multipleStock = True
+
     numberOfEpisodes = args.numberOfEpisodes
     displayTestbench = args.displayTestbench
     analyseTimeSeries = args.analyseTimeSeries
@@ -43,14 +50,19 @@ if (__name__ == '__main__'):
     evaluateStock = args.evaluateStock
 
     # Training and testing of the trading strategy specified for the stock (market) specified
-    simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+    if multipleStock:
+        simulator.simulateMultipleStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+    else:
+        simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+
+    # the other functions can't be used with multipleStock, so it's used the first of the list
     if displayTestbench:
         simulator.displayTestbench()
     if analyseTimeSeries:
-        simulator.analyseTimeSeries(stock)
+        simulator.analyseTimeSeries(stock[0] if multipleStock else stock)
     if simulateExistingStrategy:
-        simulator.simulateExistingStrategy(strategy, stock)
+        simulator.simulateExistingStrategy(strategy, stock[0] if multipleStock else stock)
     if evaluateStrategy:
         simulator.evaluateStrategy(strategy, saveStrategy=False)
     if evaluateStock:
-        simulator.evaluateStock(stock)
+        simulator.evaluateStock(stock[0] if multipleStock else stock)

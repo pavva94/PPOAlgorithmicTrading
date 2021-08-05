@@ -442,6 +442,136 @@ class TradingSimulator:
         # Return of the trading strategy simulated and of the trading environments backtested
         return tradingStrategy, trainingEnv, testingEnv
 
+    def simulateMultipleStrategy(self, strategyName, stockNames,
+                            startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
+                            observationSpace=observationSpace, actionSpace=actionSpace,
+                            money=money, stateLength=stateLength, transactionCosts=transactionCosts,
+                            bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
+                            verbose=True, plotTraining=True, rendering=True, showPerformance=True,
+                            saveStrategy=False):
+        """
+        GOAL: Simulate a new trading strategy on a list of stocks included in the
+              testbench, with both learning and testing phases.
+
+        INPUTS: - strategyName: Name of the trading strategy.
+                - stockName: List of names of stocks (in the testbench).
+                - startingDate: Beginning of the trading horizon.
+                - endingDate: Ending of the trading horizon.
+                - splitingDate: Spliting date between the training dataset
+                                and the testing dataset.
+                - observationSpace: Size of the RL observation space.
+                - actionSpace: Size of the RL action space.
+                - money: Initial capital at the disposal of the agent.
+                - stateLength: Length of the trading agent state.
+                - transactionCosts: Additional costs incurred while trading
+                                    (e.g. 0.01 <=> 1% of transaction costs).
+                - bounds: Bounds of the parameter search space (training).
+                - step: Step of the parameter search space (training).
+                - numberOfEpisodes: Number of epsiodes of the RL training phase.
+                - verbose: Enable the printing of a simulation feedback.
+                - plotTraining: Enable the plotting of the training results.
+                - rendering: Enable the rendering of the trading environment.
+                - showPerformance: Enable the printing of a table summarizing
+                                   the trading strategy performance.
+                - saveStrategy: Enable the saving of the trading strategy.
+
+        OUTPUTS: - tradingStrategy: Trading strategy simulated.
+                 - trainingEnv: Trading environment related to the training phase.
+                 - testingEnv: Trading environment related to the testing phase.
+        """
+
+        # 1. INITIALIZATION PHASE
+
+        # Retrieve the trading strategy information
+        if (strategyName in strategies):
+            strategy = strategies[strategyName]
+            trainingParameters = [bounds, step]
+            ai = False
+        elif (strategyName in strategiesAI):
+            strategy = strategiesAI[strategyName]
+            trainingParameters = [numberOfEpisodes]
+            ai = True
+        # Error message if the strategy specified is not valid or not supported
+        else:
+            print("The strategy specified is not valid, only the following strategies are supported:")
+            for strategy in strategies:
+                print("".join(['- ', strategy]))
+            for strategy in strategiesAI:
+                print("".join(['- ', strategy]))
+            raise SystemError("Please check the trading strategy specified.")
+
+        tradingStrategies, trainingEnvs, testingEnvs = [], [], []
+
+        for stockName in stockNames:
+            # Retrieve the trading stock information
+            if stockName in fictives:
+                stock = fictives[stockName]
+            elif stockName in indices:
+                stock = indices[stockName]
+            elif stockName in companies:
+                stock = companies[stockName]
+                # Error message if the stock specified is not valid or not supported
+            else:
+                print("The stock specified is not valid, only the following stocks are supported:")
+                for stock in fictives:
+                    print("".join(['- ', stock]))
+                for stock in indices:
+                    print("".join(['- ', stock]))
+                for stock in companies:
+                    print("".join(['- ', stock]))
+                raise SystemError("Please check the stock specified.")
+
+            # 2. TRAINING PHASE
+
+            # Initialize the trading environment associated with the training phase
+            trainingEnv = TradingEnv(stock, startingDate, splitingDate, money, stateLength, transactionCosts)
+
+            # Instantiate the strategy classes
+            if ai:
+                strategyModule = importlib.import_module(str(strategy))
+                className = getattr(strategyModule, strategy)
+                tradingStrategy = className(observationSpace, actionSpace)
+            else:
+                strategyModule = importlib.import_module('classicalStrategy')
+                className = getattr(strategyModule, strategy)
+                tradingStrategy = className()
+
+            # Training of the trading strategy
+            trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,
+                                                   verbose=verbose, rendering=rendering,
+                                                   plotTraining=plotTraining, showPerformance=showPerformance)
+
+            # 3. TESTING PHASE
+
+            # Initialize the trading environment associated with the testing phase
+            testingEnv = TradingEnv(stock, splitingDate, endingDate, money, stateLength, transactionCosts)
+
+            # Testing of the trading strategy
+            testingEnv = tradingStrategy.testing(trainingEnv, testingEnv, rendering=rendering,
+                                                 showPerformance=showPerformance)
+
+            # Show the entire unified rendering of the training and testing phases
+            if rendering:
+                self.plotEntireTrading(trainingEnv, testingEnv)
+
+            # 4. TERMINATION PHASE
+
+            # If required, save the trading strategy with Pickle
+            if saveStrategy:
+                fileName = "".join(["Strategies/", strategy, "_", stock, "_", startingDate, "_", splitingDate])
+                if ai:
+                    tradingStrategy.saveModel(fileName)
+                else:
+                    fileHandler = open(fileName, 'wb')
+                    pickle.dump(tradingStrategy, fileHandler)
+
+            tradingStrategies.append(tradingStrategy)
+            trainingEnvs.append(trainingEnv)
+            testingEnvs.append(testingEnv)
+
+        # Return of the trading strategy simulated and of the trading environments backtested
+        return tradingStrategies, trainingEnvs, testingEnvs
+
     def simulateExistingStrategy(self, strategyName, stockName,
                                  startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
                                  observationSpace=observationSpace, actionSpace=actionSpace,

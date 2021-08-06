@@ -24,6 +24,7 @@ if (__name__ == '__main__'):
     parser.add_argument("-strategy", default='PPO', type=str, help="Name of the trading strategy")
     parser.add_argument("-stock", default='Apple', type=str, help="Name of the stock (market)")
     parser.add_argument("-numberOfEpisodes", default=50, type=int, help="Number of training episodes")
+    parser.add_argument("-batch_mode", default=False, type=bool, help="Batch Mode for training")
     parser.add_argument("-displayTestbench", default=False, type=bool, help="Dislay Testbench")
     parser.add_argument("-analyseTimeSeries", default=False, type=bool, help="Start Analysis Time Series")
     parser.add_argument("-simulateExistingStrategy", default=False, type=bool, help="Start Simulation of an Existing Strategy")
@@ -36,6 +37,7 @@ if (__name__ == '__main__'):
     strategy = args.strategy
     stock = args.stock
     numberOfEpisodes = args.numberOfEpisodes
+    batch_mode = args.batch_mode
     displayTestbench = args.displayTestbench
     analyseTimeSeries = args.analyseTimeSeries
     simulateExistingStrategy = args.simulateExistingStrategy
@@ -43,7 +45,7 @@ if (__name__ == '__main__'):
     evaluateStock = args.evaluateStock
 
     # Training and testing of the trading strategy specified for the stock (market) specified
-    simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+    simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, batch_mode=batch_mode, saveStrategy=False)
     if displayTestbench:
         simulator.displayTestbench()
     if analyseTimeSeries:

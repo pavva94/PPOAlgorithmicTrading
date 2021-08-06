@@ -323,7 +323,7 @@ class TradingSimulator:
                             startingDate=startingDate, endingDate=endingDate, splitingDate=splitingDate,
                             observationSpace=observationSpace, actionSpace=actionSpace,
                             money=money, stateLength=stateLength, transactionCosts=transactionCosts,
-                            bounds=bounds, step=step, numberOfEpisodes=numberOfEpisodes,
+                            bounds=bounds, step=step, batch_mode=False, batch_size=64, numberOfEpisodes=numberOfEpisodes,
                             verbose=True, plotTraining=True, rendering=True, showPerformance=True,
                             saveStrategy=False):
         """
@@ -411,9 +411,14 @@ class TradingSimulator:
             tradingStrategy = className()
 
         # Training of the trading strategy
-        trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,
-                                               verbose=verbose, rendering=rendering,
-                                               plotTraining=plotTraining, showPerformance=showPerformance)
+        if batch_mode:
+            trainingEnv = tradingStrategy.trainingBatch(trainingEnv, trainingParameters=trainingParameters, batch_size=batch_size,
+                                                   verbose=verbose, rendering=rendering,
+                                                   plotTraining=plotTraining, showPerformance=showPerformance)
+        else:
+            trainingEnv = tradingStrategy.training(trainingEnv, trainingParameters=trainingParameters,
+                                                   verbose=verbose, rendering=rendering,
+                                                   plotTraining=plotTraining, showPerformance=showPerformance)
 
         # 3. TESTING PHASE
 

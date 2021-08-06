@@ -400,6 +400,8 @@ class PPO:
         # clear buffer
         self.buffer.clear()
 
+        # Set back the Deep Neural Network in evaluation mode
+        self.policy.eval()
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
         """

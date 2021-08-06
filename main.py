@@ -24,6 +24,7 @@ if (__name__ == '__main__'):
     parser.add_argument("-strategy", default='PPO', type=str, help="Name of the trading strategy")
     parser.add_argument("-stock", default='Apple', type=str, help="Name of the stock (market)")
     parser.add_argument("-numberOfEpisodes", default=50, type=int, help="Number of training episodes")
+    parser.add_argument("-batch_mode", default=False, type=bool, help="Batch Mode for training")
     parser.add_argument("-displayTestbench", default=False, type=bool, help="Dislay Testbench")
     parser.add_argument("-analyseTimeSeries", default=False, type=bool, help="Start Analysis Time Series")
     parser.add_argument("-simulateExistingStrategy", default=False, type=bool, help="Start Simulation of an Existing Strategy")
@@ -43,6 +44,7 @@ if (__name__ == '__main__'):
         multipleStock = True
 
     numberOfEpisodes = args.numberOfEpisodes
+    batch_mode = args.batch_mode
     displayTestbench = args.displayTestbench
     analyseTimeSeries = args.analyseTimeSeries
     simulateExistingStrategy = args.simulateExistingStrategy
@@ -53,7 +55,7 @@ if (__name__ == '__main__'):
     if multipleStock:
         simulator.simulateMultipleStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
     else:
-        simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+        simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, batch_mode=batch_mode, saveStrategy=False)
 
     # the other functions can't be used with multipleStock, so it's used the first of the list
     if displayTestbench:

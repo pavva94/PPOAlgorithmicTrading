@@ -45,7 +45,7 @@ class RolloutBuffer:
         del self.rewards[:]
         del self.is_terminals[:]
 
-    def check_len(self):
+    def length(self):
         assert len(self.actions) == len(self.states) == len(self.logprobs) == len(self.rewards) == len(self.is_terminals)
         return len(self.actions)
 
@@ -59,9 +59,17 @@ class ActorCritic(nn.Module):
         # actor
         self.actor = nn.Sequential(
             nn.Linear(observationSpace, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(numberOfNeurons, numberOfNeurons),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, actionSpace),
             nn.Softmax(dim=-1)
         )
@@ -69,9 +77,17 @@ class ActorCritic(nn.Module):
         # critic
         self.critic = nn.Sequential(
             nn.Linear(observationSpace, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(numberOfNeurons, numberOfNeurons),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, 1)
         )
 
@@ -79,7 +95,6 @@ class ActorCritic(nn.Module):
         raise NotImplementedError
 
     def act(self, state):
-
         action_probs = self.actor(state)
         dist = Categorical(action_probs)
 
@@ -89,7 +104,6 @@ class ActorCritic(nn.Module):
         return action.detach(), action_logprob.detach()
 
     def evaluate(self, state, action):
-
         action_probs = self.actor(state)
         dist = Categorical(action_probs)
         action_logprobs = dist.log_prob(action)
@@ -333,7 +347,9 @@ class PPO:
         return action.item()
 
     def learning(self):
-        print(self.buffer.check_len())
+        #print(self.buffer.length())
+        # Set the Deep Neural Network in training mode
+        self.policy.train()
         # Monte Carlo estimate of returns
         rewards = []
         discounted_reward = 0
@@ -368,7 +384,9 @@ class PPO:
             surr1 = ratios * advantages
             surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
 
-            # final loss of clipped objective PPO
+            # Final loss of clipped objective PPO (L[CLIP+VS+S])
+            # loss = -LCLIP + C1*VF - C2*S
+            # LOSS = PPOObjective + coef1*SquaredErrorLoss + coef2*EntropyBonus
             loss = -torch.min(surr1, surr2) + 0.5 * self.MseLoss(state_values, rewards) - 0.01 * dist_entropy
 
             # take gradient step
@@ -381,6 +399,80 @@ class PPO:
 
         # clear buffer
         self.buffer.clear()
+
+        # Set back the Deep Neural Network in evaluation mode
+        self.policy.eval()
+
+    def learningBatch(self, batch_size):
+        rewards = []
+        discounted_reward = 0
+        for reward, is_terminal in zip(reversed(self.buffer.rewards), reversed(self.buffer.is_terminals)):
+            if is_terminal:
+                discounted_reward = 0
+            discounted_reward = reward + (self.gamma * discounted_reward)
+            rewards.insert(0, discounted_reward)
+
+        # Normalizing the rewards
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
+        rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-7)
+        # convert list to tensor
+        old_states = torch.squeeze(torch.stack(self.buffer.states, dim=0)).detach().to(self.device)
+        old_actions = torch.squeeze(torch.stack(self.buffer.actions, dim=0)).detach().to(self.device)
+        old_logprobs = torch.squeeze(torch.stack(self.buffer.logprobs, dim=0)).detach().to(self.device)
+        old_rewards = torch.tensor(self.buffer.rewards, dtype=torch.float32).to(self.device)
+        old_terminals = torch.tensor(self.buffer.is_terminals, dtype=torch.float32).to(self.device)
+
+        # Set the Deep Neural Network in training mode
+        self.policy.train()
+
+        # Optimize policy for K epochs
+        for _ in range(self.K_epochs):
+            # Evaluating old actions and values
+            logprobs, state_values, dist_entropy = self.policy.evaluate(old_states, old_actions)
+
+            # Calculate advantages with TD(0)
+            advantages = []
+            for _ in range(batch_size):
+                reward = 0
+                for t in range(len(state_values)-1):
+                    rew = old_rewards[t]
+                    is_term = old_terminals[t]
+                    td = rew + self.gamma * state_values[t+1] * (1 - int(is_term)) - state_values[t]
+                    reward += td**(batch_size-t+1)
+                advantages.append(reward)
+
+            advantages = torch.tensor(advantages, dtype=torch.float32).to(self.device)
+            # Normalize advantages like rewards before
+            # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-7)
+
+            # match state_values tensor dimensions with rewards tensor
+            state_values = torch.squeeze(state_values)
+
+            # Finding the ratio (pi_theta / pi_theta__old)
+            ratios = torch.exp(logprobs - old_logprobs.detach())
+
+            # Finding Surrogate Loss
+            surr1 = ratios * advantages
+            surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
+
+            # Final loss of clipped objective PPO (L[CLIP+VS+S])
+            # loss = -LCLIP + C1*VF - C2*S
+            # LOSS = PPOObjective + coef1*SquaredErrorLoss + coef2*EntropyBonus
+            loss = -torch.min(surr1, surr2) + 0.5 * self.MseLoss(state_values, rewards) - 0.01 * dist_entropy
+
+            # take gradient step
+            self.optimizer.zero_grad()
+            loss.mean().backward()
+            self.optimizer.step()
+
+        # Copy new weights into old policy
+        self.policy_old.load_state_dict(self.policy.state_dict())
+
+        # clear buffer
+        self.buffer.clear()
+
+        # Set back the Deep Neural Network in evaluation mode
+        self.policy.eval()
 
     def training(self, trainingEnv, trainingParameters=[],
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
@@ -486,6 +578,166 @@ class PPO:
 
                     # Execute the learning procedure
                     self.learning()
+
+                    # Store the current training results
+                    if plotTraining:
+                        score[i][episode] = totalReward
+
+                # Compute the current performance on both the training and testing sets
+                if plotTraining:
+                    # Training set performance
+                    trainingEnv = self.testing(trainingEnv, trainingEnv)
+                    analyser = PerformanceEstimator(trainingEnv.data)
+                    performance = analyser.computeSharpeRatio()
+                    performanceTrain.append(performance)
+                    self.writer.add_scalar('Training performance (Sharpe Ratio)', performance, episode)
+                    trainingEnv.reset()
+                    # Testing set performance
+                    testingEnv = self.testing(trainingEnv, testingEnv)
+                    analyser = PerformanceEstimator(testingEnv.data)
+                    performance = analyser.computeSharpeRatio()
+                    performanceTest.append(performance)
+                    self.writer.add_scalar('Testing performance (Sharpe Ratio)', performance, episode)
+                    testingEnv.reset()
+
+        except KeyboardInterrupt:
+            print()
+            print("WARNING: Training prematurely interrupted...")
+            print()
+            self.policy.eval()
+
+        # Assess the algorithm performance on the training trading environment
+        trainingEnv = self.testing(trainingEnv, trainingEnv)
+
+        # If required, show the rendering of the trading environment
+        if rendering:
+            trainingEnv.render()
+
+        # If required, plot the training results
+        if plotTraining:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, ylabel='Performance (Sharpe Ratio)', xlabel='Episode')
+            ax.plot(performanceTrain)
+            ax.plot(performanceTest)
+            ax.legend(["Training", "Testing"])
+            plt.savefig(''.join(['Figures/', str(marketSymbol), '_TrainingTestingPerformance', '.png']))
+            # plt.show()
+            for i in range(len(trainingEnvList)):
+                self.plotTraining(score[i][:episode], marketSymbol)
+
+        # If required, print the strategy performance in a table
+        if showPerformance:
+            analyser = PerformanceEstimator(trainingEnv.data)
+            analyser.displayPerformance('PPO')
+
+        # Closing of the tensorboard writer
+        self.writer.close()
+
+        return trainingEnv
+
+    def trainingBatch(self, trainingEnv, trainingParameters=[], batch_size=64,
+                 verbose=False, rendering=False, plotTraining=False, showPerformance=False):
+        """
+        GOAL: Train the RL trading agent by interacting with its trading environment.
+
+        INPUTS: - trainingEnv: Training RL environment (known).
+                - trainingParameters: Additional parameters associated
+                                      with the training phase (e.g. the number
+                                      of episodes).
+                - verbose: Enable the printing of a training feedback.
+                - rendering: Enable the training environment rendering.
+                - plotTraining: Enable the plotting of the training results.
+                - showPerformance: Enable the printing of a table summarizing
+                                   the trading strategy performance.
+
+        OUTPUTS: - trainingEnv: Training RL environment.
+        """
+
+        """
+        # Compute and plot the expected performance of the trading policy
+        trainingEnv = self.plotExpectedPerformance(trainingEnv, trainingParameters, iterations=50)
+        return trainingEnv
+        """
+
+        # Apply data augmentation techniques to improve the training set
+        dataAugmentation = DataAugmentation()
+        trainingEnvList = dataAugmentation.generate(trainingEnv)
+
+        stepsCounter = 0
+
+        # Initialization of some variables tracking the training and testing performances
+        if plotTraining:
+            # Training performance
+            performanceTrain = []
+            score = np.zeros((len(trainingEnvList), trainingParameters[0]))
+            # Testing performance
+            marketSymbol = trainingEnv.marketSymbol
+            startingDate = trainingEnv.endingDate
+            endingDate = '2020-1-1'
+            money = trainingEnv.data['Money'][0]
+            stateLength = trainingEnv.stateLength
+            transactionCosts = trainingEnv.transactionCosts
+            testingEnv = TradingEnv(marketSymbol, startingDate, endingDate, money, stateLength, transactionCosts)
+            performanceTest = []
+
+        try:
+            # If required, print the training progression
+            if verbose:
+                print("Training progression (hardware selected => " + str(self.device) + "):")
+
+            # Training phase for the number of episodes specified as parameter
+            for episode in tqdm(range(trainingParameters[0]), disable=not (verbose)):
+
+                # For each episode, train on the entire set of training environments
+                for i in range(len(trainingEnvList)):
+
+                    # Set the initial RL variables
+                    coefficients = self.getNormalizationCoefficients(trainingEnvList[i])
+                    trainingEnvList[i].reset()
+                    startingPoint = random.randrange(len(trainingEnvList[i].data.index))
+                    trainingEnvList[i].setStartingPoint(startingPoint)
+                    state = self.processState(trainingEnvList[i].state, coefficients)
+                    done = 0
+
+                    # Set the performance tracking veriables
+                    if plotTraining:
+                        totalReward = 0
+
+                    # Interact with the training environment until termination
+                    while done == 0:
+
+                        # Choose an action according to the RL policy and the current RL state
+                        action = self.chooseAction(state)
+
+                        # Interact with the environment with the chosen action
+                        nextState, reward, done, info = trainingEnvList[i].step(action)
+
+                        # Process the RL variables retrieved and insert this new experience into the Experience Replay memory
+                        reward = self.processReward(reward)
+                        nextState = self.processState(nextState, coefficients)
+                        self.buffer.rewards.append(reward)
+                        self.buffer.is_terminals.append(done)
+
+                        # # Trick for better exploration
+                        # otherAction = int(not bool(action))
+                        # otherReward = self.processReward(info['Reward'])
+                        # otherNextState = self.processState(info['State'], coefficients)
+                        # otherDone = info['Done']
+                        # self.buffer.rewards.append(otherReward)
+                        # self.buffer.is_terminals.append(otherDone)
+
+                        # Execute the learning procedure
+                        stepsCounter += 1
+                        if stepsCounter == batch_size:
+                            self.learningBatch(batch_size)
+                            stepsCounter = 0
+
+                        # Update the RL state
+                        state = nextState
+
+                        # Continuous tracking of the training performance
+                        if plotTraining:
+                            totalReward += reward
 
                     # Store the current training results
                     if plotTraining:

@@ -45,7 +45,7 @@ class RolloutBuffer:
         del self.rewards[:]
         del self.is_terminals[:]
 
-    def check_len(self):
+    def length(self):
         assert len(self.actions) == len(self.states) == len(self.logprobs) == len(self.rewards) == len(self.is_terminals)
         return len(self.actions)
 

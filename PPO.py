@@ -95,7 +95,6 @@ class ActorCritic(nn.Module):
         raise NotImplementedError
 
     def act(self, state):
-
         action_probs = self.actor(state)
         dist = Categorical(action_probs)
 
@@ -105,7 +104,6 @@ class ActorCritic(nn.Module):
         return action.detach(), action_logprob.detach()
 
     def evaluate(self, state, action):
-
         action_probs = self.actor(state)
         dist = Categorical(action_probs)
         action_logprobs = dist.log_prob(action)
@@ -349,7 +347,9 @@ class PPO:
         return action.item()
 
     def learning(self):
-        print(self.buffer.check_len())
+        #print(self.buffer.length())
+        # Set the Deep Neural Network in training mode
+        self.policy.train()
         # Monte Carlo estimate of returns
         rewards = []
         discounted_reward = 0
@@ -384,7 +384,9 @@ class PPO:
             surr1 = ratios * advantages
             surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
 
-            # final loss of clipped objective PPO
+            # Final loss of clipped objective PPO (L[CLIP+VS+S])
+            # loss = -LCLIP + C1*VF - C2*S
+            # LOSS = PPOObjective + coef1*SquaredErrorLoss + coef2*EntropyBonus
             loss = -torch.min(surr1, surr2) + 0.5 * self.MseLoss(state_values, rewards) - 0.01 * dist_entropy
 
             # take gradient step

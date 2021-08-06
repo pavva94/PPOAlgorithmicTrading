@@ -59,9 +59,17 @@ class ActorCritic(nn.Module):
         # actor
         self.actor = nn.Sequential(
             nn.Linear(observationSpace, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(numberOfNeurons, numberOfNeurons),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, actionSpace),
             nn.Softmax(dim=-1)
         )
@@ -69,9 +77,17 @@ class ActorCritic(nn.Module):
         # critic
         self.critic = nn.Sequential(
             nn.Linear(observationSpace, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, numberOfNeurons),
-            nn.Tanh(),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(numberOfNeurons, numberOfNeurons),
+            nn.LayerNorm(numberOfNeurons),
+            nn.LeakyReLU(),
+            nn.Dropout(0.2),
             nn.Linear(numberOfNeurons, 1)
         )
 

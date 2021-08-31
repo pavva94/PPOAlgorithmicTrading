@@ -81,7 +81,6 @@ class TradingEnv(gym.Env):
         
         OUTPUTS: /
         """
-
         # CASE 1: Fictive stock generation
         if (marketSymbol in fictiveStocks):
             stockGeneration = StockGenerator()

@@ -40,6 +40,11 @@ startingDate = '2012-1-1'
 endingDate = '2020-1-1'
 splitingDate = '2018-1-1'
 
+# Horizon variables for Crytpo
+startingDateCrypto = '2018-1-1'
+endingDateCrypto = '2021-7-27'
+splitingDateCrypto = '2020-7-1'
+
 # Variables defining the default observation and state spaces
 stateLength = 30
 observationSpace = 1 + (stateLength - 1) * 4
@@ -96,7 +101,10 @@ stocks = {
     'Toyota': '7203.T',
     'Coca Cola': 'KO',
     'AB InBev': 'ABI.BR',
-    'Kirin': '2503.T'
+    'Kirin': '2503.T',
+    'Binance': 'Binance',
+    'Litecoin': 'Litecoin',
+    'Cardano': 'Cardano'
 }
 
 # Dictionary listing the 5 trading indices considered as testbench
@@ -134,7 +142,10 @@ companies = {
     'Toyota': '7203.T',
     'Coca Cola': 'KO',
     'AB InBev': 'ABI.BR',
-    'Kirin': '2503.T'
+    'Kirin': '2503.T',
+    'Binance': 'Binance',
+    'Litecoin': 'Litecoin',
+    'Cardano': 'Cardano'
 }
 
 # Dictionary listing the classical trading strategies supported

@@ -12,7 +12,7 @@ Institution: University of Liège
 
 import argparse
 
-from tradingSimulator import TradingSimulator
+from tradingSimulator import TradingSimulator, startingDate, splitingDate, endingDate, startingDateCrypto, splitingDateCrypto, endingDateCrypto
 
 ###############################################################################
 ##################################### MAIN ####################################
@@ -30,6 +30,7 @@ if (__name__ == '__main__'):
     parser.add_argument("-simulateExistingStrategy", default=False, type=bool, help="Start Simulation of an Existing Strategy")
     parser.add_argument("-evaluateStrategy", default=False, type=bool, help="Start Evaluation of a Strategy")
     parser.add_argument("-evaluateStock", default=False, type=bool, help="Start Evaluation of a Stock")
+    parser.add_argument("-crypto", default=False, type=bool, help="Start Evaluation of a Crypto Stock")
     args = parser.parse_args()
 
     # Initialization of the required variables
@@ -50,21 +51,34 @@ if (__name__ == '__main__'):
     simulateExistingStrategy = args.simulateExistingStrategy
     evaluateStrategy = args.evaluateStrategy
     evaluateStock = args.evaluateStock
+    crypto = args.crypto
+
+    startDate = startingDateCrypto if crypto else startingDate
+    splitDate = splitingDateCrypto if crypto else splitingDate
+    endDate = endingDateCrypto if crypto else endingDate
 
     # Training and testing of the trading strategy specified for the stock (market) specified
     if multipleStock:
-        simulator.simulateMultipleStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
+        simulator.simulateMultipleStrategy(strategy, stock,
+                                           startingDate=startDate, endingDate=endDate, splitingDate=splitDate,
+                                           numberOfEpisodes=numberOfEpisodes, saveStrategy=False)
     else:
-        simulator.simulateNewStrategy(strategy, stock, numberOfEpisodes=numberOfEpisodes, batch_mode=batch_mode, saveStrategy=False)
+        simulator.simulateNewStrategy(strategy, stock,
+                                      startingDate=startDate, endingDate=endDate, splitingDate=splitDate,
+                                      numberOfEpisodes=numberOfEpisodes, batch_mode=batch_mode, saveStrategy=True)
 
     # the other functions can't be used with multipleStock, so it's used the first of the list
     if displayTestbench:
         simulator.displayTestbench()
     if analyseTimeSeries:
-        simulator.analyseTimeSeries(stock[0] if multipleStock else stock)
+        simulator.analyseTimeSeries(stock[0] if multipleStock else stock,
+                                    startingDate=startDate, endingDate=endDate, splitingDate=splitDate)
     if simulateExistingStrategy:
-        simulator.simulateExistingStrategy(strategy, stock[0] if multipleStock else stock)
+        simulator.simulateExistingStrategy(strategy, stock[0] if multipleStock else stock,
+                                           startingDate=startDate, endingDate=endDate, splitingDate=splitDate)
     if evaluateStrategy:
-        simulator.evaluateStrategy(strategy, saveStrategy=False)
+        simulator.evaluateStrategy(strategy, saveStrategy=False,
+                                   startingDate=startDate, endingDate=endDate, splitingDate=splitDate)
     if evaluateStock:
-        simulator.evaluateStock(stock[0] if multipleStock else stock)
+        simulator.evaluateStock(stock[0] if multipleStock else stock,
+                                startingDate=startDate, endingDate=endDate, splitingDate=splitDate)

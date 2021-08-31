@@ -672,8 +672,8 @@ class PPO:
             score = np.zeros((len(trainingEnvList), trainingParameters[0]))
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
-            startingDate = trainingEnv.endingDate
-            endingDate = '2020-1-1'
+            startingDate = trainingEnv.startingDate
+            endingDate = trainingEnv.endingDate
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts

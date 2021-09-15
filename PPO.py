@@ -21,6 +21,8 @@ from tradingEnv import TradingEnv
 
 ################################# PPO Policy ##################################
 # Default parameters related to preprocessing
+from tradingSimulator import endingDateCrypto
+
 filterOrder = 5
 
 # Default paramters related to the clipping of both the gradient and the RL rewards
@@ -510,7 +512,9 @@ class PPO:
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
             startingDate = trainingEnv.endingDate
-            endingDate = '2020-1-1'
+            endingDate = '2020-1-1' if marketSymbol not in {'Binance': 'Binance',
+                                                            'Litecoin': 'Litecoin',
+                                                            'Cardano': 'Cardano'} else endingDateCrypto
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts

@@ -4,6 +4,7 @@
 Goal: Program Main.
 Authors: Thibaut Théate and Damien Ernst
 Institution: University of Liège
+Modified 08/2021 by Alessandro Pavesi
 """
 
 ###############################################################################
@@ -82,3 +83,10 @@ if (__name__ == '__main__'):
     if evaluateStock:
         simulator.evaluateStock(stock[0] if multipleStock else stock,
                                 startingDate=startDate, endingDate=endDate, splitingDate=splitDate)
+
+
+# Examples:
+# Crypto Mode:      python3 main.py -stock Cardano -batch_mode True -crypto True
+# Batch Mode:       python3 main.py -stock Tesla -batch_mode True
+# Normal Call:      python3 main.py -stock Apple
+# Multiple Assets:  python3 main.py -stock Tesla-Apple-Sony

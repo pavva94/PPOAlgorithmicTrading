@@ -4,6 +4,7 @@
 Goal: Implement a trading simulator to simulate and compare trading strategies.
 Authors: Thibaut Théate and Damien Ernst
 Institution: University of Liège
+Modified 08/2021 by Alessandro Pavesi
 """
 
 ###############################################################################

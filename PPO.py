@@ -1,3 +1,12 @@
+# coding=utf-8
+
+"""
+Goal: Implementing a custom version of the PPO algorithm specialized
+      to algorithmic trading.
+Authors: Alessandro Pavesi
+Institution: University of Bologna
+"""
+
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical

@@ -521,9 +521,7 @@ class PPO:
             # Testing performance
             marketSymbol = trainingEnv.marketSymbol
             startingDate = trainingEnv.endingDate
-            endingDate = '2020-1-1' if marketSymbol not in {'Binance': 'Binance',
-                                                            'Litecoin': 'Litecoin',
-                                                            'Cardano': 'Cardano'} else endingDateCrypto
+            endingDate = '2020-1-1' if marketSymbol not in ['Binance', 'Litecoin', 'Cardano'] else endingDateCrypto
             money = trainingEnv.data['Money'][0]
             stateLength = trainingEnv.stateLength
             transactionCosts = trainingEnv.transactionCosts

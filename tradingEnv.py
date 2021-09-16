@@ -310,7 +310,7 @@ class TradingEnv(gym.Env):
         if (self.t == self.data.shape[0]):
             self.done = 1
 
-            # Same reasoning with the other action (exploration trick)
+        # Same reasoning with the other action (exploration trick)
         otherAction = int(not bool(action))
         customReward = False
         if (otherAction == 1):

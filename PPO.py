@@ -543,6 +543,12 @@ class PPO:
                     coefficients = self.getNormalizationCoefficients(trainingEnvList[i])
                     trainingEnvList[i].reset()
                     startingPoint = random.randrange(len(trainingEnvList[i].data.index))
+                    # Seems that if the starting point is the last but one the training fails
+                    # because the batch is .size([])
+                    # Moreover the last but one index is usually returned (How? there's a random!) so
+                    # Check the startingPoint to not be the last but one
+                    while startingPoint+1 == len(trainingEnvList[i].data.index):
+                        startingPoint = random.randrange(len(trainingEnvList[i].data.index))
                     trainingEnvList[i].setStartingPoint(startingPoint)
                     state = self.processState(trainingEnvList[i].state, coefficients)
                     done = 0

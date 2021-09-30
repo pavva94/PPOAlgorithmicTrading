@@ -652,7 +652,7 @@ class PPO:
 
         return trainingEnv
 
-    def trainingBatch(self, trainingEnv, trainingParameters=[], batch_size=64,
+    def trainingBatch(self, trainingEnv, trainingParameters=[], batch_size=32,
                  verbose=False, rendering=False, plotTraining=False, showPerformance=False):
         """
         GOAL: Train the RL trading agent by interacting with its trading environment.

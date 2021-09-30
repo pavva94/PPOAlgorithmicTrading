@@ -219,7 +219,7 @@ class TradingEnv(gym.Env):
                  - info: Additional information returned to the RL agent.
         """
 
-        # Stting of some local variables
+        # Setting of some local variables
         t = self.t
         numberOfShares = self.numberOfShares
         customReward = False

@@ -24,7 +24,7 @@ if (__name__ == '__main__'):
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-strategy", default='PPO', type=str, help="Name of the trading strategy")
     parser.add_argument("-stock", default='Apple', type=str, help="Name of the stock (market)")
-    parser.add_argument("-numberOfEpisodes", default=50, type=int, help="Number of training episodes")
+    parser.add_argument("-numberOfEpisodes", default=100, type=int, help="Number of training episodes")
     parser.add_argument("-batch_mode", default=False, type=bool, help="Batch Mode for training")
     parser.add_argument("-displayTestbench", default=False, type=bool, help="Dislay Testbench")
     parser.add_argument("-analyseTimeSeries", default=False, type=bool, help="Start Analysis Time Series")
